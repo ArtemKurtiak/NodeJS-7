@@ -115,7 +115,7 @@ module.exports = {
             const { token } = req;
             const { userId } = req.params;
 
-            if (token.user._id.toString() !== userId) {
+            if (token?.user?._id?.toString() !== userId) {
                 throw new CustomError('Forbidden', 403);
             }
 
