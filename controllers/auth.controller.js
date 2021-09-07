@@ -1,7 +1,6 @@
 const CustomError = require('../errors/customError');
 const { CREATED, NOT_AUTHORIZED, NO_CONTENT } = require('../constants/status-codes.enum');
-const { hashPassword, comparePasswords } = require('../services/password.service');
-const { generateTokens } = require('../services/jwt.service');
+const { passwordService, jwtService } = require('../services');
 const { User, OAuth } = require('../db');
 const { normalizeUser } = require('../utils/user.util');
 
@@ -11,7 +10,7 @@ module.exports = {
         try {
             const { email, password, role } = req.body;
 
-            const hashedPassword = await hashPassword(password);
+            const hashedPassword = await passwordService.hashPassword(password);
 
             const user = await User.create({
                 email,
@@ -21,7 +20,7 @@ module.exports = {
 
             const normalizedUser = normalizeUser(user);
 
-            const tokenPair = generateTokens();
+            const tokenPair = jwtService.generateTokens();
 
             await OAuth.create({
                 ...tokenPair,
@@ -40,11 +39,11 @@ module.exports = {
         try {
             const { user, body: { password } } = req;
 
-            await comparePasswords(password, user.password);
+            await passwordService.comparePasswords(password, user.password);
 
             const normalizedUser = normalizeUser(user);
 
-            const tokenPair = generateTokens();
+            const tokenPair = jwtService.generateTokens();
 
             await OAuth.create({
                 ...tokenPair,
@@ -62,7 +61,7 @@ module.exports = {
         try {
             const { token } = req;
 
-            const newTokenPair = generateTokens();
+            const newTokenPair = jwtService.generateTokens();
 
             const DbToken = await OAuth.findOneAndUpdate({ refreshToken: token }, { ...newTokenPair });
 
